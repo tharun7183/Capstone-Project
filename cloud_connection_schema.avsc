@@ -1,0 +1,104 @@
+{
+  "type": "record",
+  "name": "CloudConnection",
+  "namespace": "com.example",
+  "fields": [
+    {
+      "name": "conn_id",
+      "type": "string"
+    },
+    {
+      "name": "conn_type",
+      "type": {
+        "type": "enum",
+        "name": "ConnectionType",
+        "symbols": [
+          "AZUREBLOB",
+          "S3",
+          "CLOUDSTORAGE",
+          "SALESFORCE"
+        ]
+      }
+    },
+    {
+      "name": "connection_string",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "aws_access_key_id",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "aws_secret_access_key",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "region_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "container_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "bucket_name",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "key_json",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "login",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "password",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    },
+    {
+      "name": "securityToken",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": ""
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "type": "record",
+  "name": "Pipeline",
+  "fields": [
+    {
+      "name": "pipelineId",
+      "type": "string"
+    },
+    {
+      "name": "scheduleInterval",
+      "type": "string"
+    },
+    {
+      "name": "startDate",
+      "type": "string"
+    },
+    {
+      "name": "catchup",
+      "type": "boolean"
+    },
+    {
+      "name": "jobs",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Job",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "source",
+              "type": {
+                "type": "record",
+                "name": "Source",
+                "fields": [
+                  {
+                    "name": "sourceName",
+                    "type": "string"
+                  },
+                  {
+                    "name": "sourceType",
+                    "type": "string"
+                  },
+                  {
+                    "name": "sourceProperties",
+                    "type": {
+                      "type": "record",
+                      "name": "SourceProperties",
+                      "fields": [
+                        {
+                          "name": "taskId",
+                          "type": "string"
+                        },
+                        {
+                          "name": "connectionId",
+                          "type": "string"
+                        },
+                        {
+                          "name": "tableName",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "bucketName",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "containerName",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "schemaName",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "objectName",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "sourceJobType",
+                          "type": ["string", "null"]
+                        },
+                        {
+                          "name": "customQuery",
+                          "type": ["string", "null"]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": "destinations",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "Destination",
+                  "fields": [
+                    {
+                      "name": "destinationName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "destinationType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "destinationProperties",
+                      "type": {
+                        "type": "record",
+                        "name": "DestinationProperties",
+                        "fields": [
+                          {
+                            "name": "taskId",
+                            "type": "string"
+                          },
+                          {
+                            "name": "connectionId",
+                            "type": "string"
+                          },
+                          {
+                            "name": "tableName",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "bucketName",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "containerName",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "schemaName",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "objectName",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "sourceJobType",
+                            "type": ["string", "null"]
+                          },
+                          {
+                            "name": "customQuery",
+                            "type": ["string", "null"]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "joinMetadata",
+              "type": {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "JoinMetadata",
+                  "fields": [
+                    {
+                      "name": "joinMetadataTaskId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "sourceMetadataId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "destinationMetadataId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "sourceColumnName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "destinationColumnName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "teamID",
+                      "type": ["null", "string"]
+                    },
+                    {
+                      "name": "tagID",
+                      "type": ["null", "string"]
+                    },
+                    {
+                      "name": "sourceGroupId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "destinationTaskId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "sourceTaskId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "transformations",
+                      "type": {
+                        "type": "record",
+                        "name": "Transformations",
+                        "fields": [
+                          {
+                            "name": "ids",
+                            "type": {
+                              "type": "array",
+                              "items": "string"
+                            }
+                          },
+                          {
+                            "name": "parent",
+                            "type": ["null", "string"]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "sequence",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "array",
+          "items": "string"
+        }
+      }
+    },
+    {
+      "name": "taskSequence",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "array",
+          "items": "string"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "name": "Pipeline",
+  "fields": [
+    {
+      "name": "pipelineId",
+      "type": "string"
+    },
+    {
+      "name": "runId",
+      "type": "string"
+    },
+    {
+      "name": "scheduleInterval",
+      "type": "string"
+    },
+    {
+      "name": "startDate",
+      "type": "string"
+    },
+    {
+      "name": "catchup",
+      "type": "boolean"
+    }
+   ]
+}

@@ -1,0 +1,44 @@
+{
+  "type": "record",
+  "name": "DatabaseConnection",
+  "namespace": "com.example",
+  "fields": [
+    {
+      "name": "conn_id",
+      "type": "string"
+    },
+    {
+      "name": "conn_type",
+      "type": {
+        "type": "enum",
+        "name": "ConnectionType",
+        "symbols": [
+          "MYSQL",
+          "PSQL",
+          "MSSQL",
+          "ORACLE"
+        ]
+      }
+    },
+    {
+      "name": "host",
+      "type": "string"
+    },
+    {
+      "name": "port",
+      "type": "string"
+    },
+    {
+      "name": "login",
+      "type": "string"
+    },
+    {
+      "name": "password",
+      "type": "string"
+    },
+    {
+      "name": "database",
+      "type": ["string", "null"]
+    }
+  ]
+}

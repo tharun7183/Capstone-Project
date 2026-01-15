@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "Pipeline",
+  "fields": [
+    {
+      "name": "pipelineId",
+      "type": "string"
+    }
+   ]
+ }

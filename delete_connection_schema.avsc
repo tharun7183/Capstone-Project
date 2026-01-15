@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "DeleteConnection",
+  "fields": [
+    {
+      "name": "conn_id",
+      "type": "string"
+    }
+  ]
+}

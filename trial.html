@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Data Transfer Chatbot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  :root{
+    /* Core palette (customizable at runtime) */
+    --accent:#7c3aed;             /* distinct default (violet-600) */
+    --accent-contrast:#ffffff;
+    --bg:#f6f7fb;                 /* light bg */
+    --text:#0f172a;               /* slate-900 */
+    --card:#ffffff;
+    --subtle:#e5e7eb;
+    --bot-bubble:#eef2ff;         /* indigo-50 */
+    --user-bubble:var(--accent);
+
+    --radius:14px;
+    --shadow:0 8px 28px rgba(2,6,23,.08);
+    --message-max:820px;
+    --font:16px;
+  }
+
+  /* Dark theme variables */
+  html.dark{
+    --bg:#0b1020;
+    --text:#e5e7eb;
+    --card:#0f162e;
+    --subtle:#1f2847;
+    --bot-bubble:#101936;
+    --accent:#8b5cf6;            /* slightly brighter in dark */
+    --accent-contrast:#ffffff;
+    --user-bubble:var(--accent);
+    --shadow:0 10px 32px rgba(0,0,0,.4);
+  }
+
+  *{ box-sizing:border-box }
+  body{
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden;
+  }
+
+  /* Sidebars */
+  .left, .right{
+    width:240px; padding:14px; display:flex; flex-direction:column; gap:10px;
+    background: linear-gradient(180deg, #12172b, #1e2750);
+    color:#c7d2fe;
+  }
+  .left h3{ margin:6px 0 2px 0; font-weight:700; color:#e0e7ff; display:flex; align-items:center; gap:8px }
+  .chatlist{ flex:1; overflow:auto; padding-right:4px }
+  .chat-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:10px; background:#1a2246; cursor:pointer; transition:.2s;
+  }
+  .chat-item:hover{ background:#223066 }
+  .chat-item.active{ outline:2px solid #6473ff }
+  .chat-item .title{ flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .btn{ border:none; border-radius:10px; padding:10px 12px; cursor:pointer; font-weight:600 }
+  .btn.primary{ background:var(--accent); color:var(--accent-contrast) }
+  .btn.primary:hover{ filter:brightness(1.05) }
+  .btn.ghost{ background:transparent; color:#c7d2fe; border:1px solid rgba(255,255,255,.15) }
+  .btn.ghost:hover{ background:rgba(255,255,255,.06) }
+
+  /* Main card */
+  .main{
+    flex:1; display:flex; align-items:stretch; justify-content:center; padding:22px;
+  }
+  .card{
+    width:100%; max-width:1000px; background:var(--card); border-radius:18px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; overflow:hidden; position:relative;
+  }
+  .header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; background:linear-gradient(90deg, var(--accent), #5b21b6);
+    color:var(--accent-contrast);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:700 }
+  .status{ font-size:12px; opacity:.9 }
+  .status .dot{ width:8px; height:8px; display:inline-block; border-radius:50%; margin-right:6px; background:#22c55e }
+
+  /* Chat area */
+  .chat{
+    flex:1; padding:18px; overflow:auto; background:
+      radial-gradient(800px 400px at 100% 0%, rgba(124,58,237,.04), transparent 60%),
+      radial-gradient(800px 400px at 0% 100%, rgba(99,102,241,.06), transparent 60%), transparent;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .msg{
+    max-width:var(--message-max); padding:12px 14px; border-radius:var(--radius);
+    display:flex; gap:10px; align-items:flex-start; line-height:1.45;
+  }
+  .msg .bubble{ flex:1 }
+  .msg.user{ align-self:flex-end; background:var(--user-bubble); color:var(--accent-contrast); border-bottom-right-radius:8px }
+  .msg.bot{ align-self:flex-start; background:var(--bot-bubble); color:var(--text); border-bottom-left-radius:8px }
+  .msg .tools{ opacity:0; transition:.2s; display:flex; gap:6px }
+  .msg:hover .tools{ opacity:1 }
+  .tool{ background:transparent; border:none; color:inherit; opacity:.75; cursor:pointer }
+  .tool:hover{ opacity:1 }
+
+  .typing{ display:flex; align-items:center; gap:6px; color:#9ca3af; padding:6px 10px }
+  .typing .dot{ width:6px; height:6px; background:#9ca3af; border-radius:50%; animation:bounce 1.2s infinite alternate }
+  .typing .dot:nth-child(2){ animation-delay:.2s } .typing .dot:nth-child(3){ animation-delay:.4s }
+  @keyframes bounce { to{ transform:translateY(-6px); opacity:.6 } }
+
+  /* Input bar */
+  .inputbar{
+    display:flex; gap:10px; align-items:center; padding:12px; border-top:1px solid var(--subtle); background:var(--card);
+  }
+  .textbox{
+    flex:1; border:1px solid var(--subtle); border-radius:12px; padding:12px 14px; outline:none; font-size:var(--font);
+    background:transparent; color:var(--text);
+  }
+  .send{ background:var(--accent); color:var(--accent-contrast); border:none; border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:700 }
+  .send:hover{ filter:brightness(1.05) }
+  .iconbtn{ background:transparent; border:none; font-size:18px; color:#6b7280; cursor:pointer }
+  .iconbtn:hover{ color:#374151 }
+
+  /* Settings panel */
+  .right .panel{
+    display:flex; flex-direction:column; gap:10px; padding:10px; background:#10163a; border-radius:12px; color:#dbeafe;
+  }
+  .row{ display:flex; align-items:center; justify-content:space-between; gap:10px }
+  .row input[type=color]{ width:44px; height:32px; border:none; border-radius:8px; background:transparent }
+  .select, .number{
+    width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.15); background:#0f1540; color:#e0e7ff;
+  }
+  .hint{ font-size:12px; opacity:.8 }
+
+  /* Drag drop */
+  .drop{ border:2px dashed var(--subtle); border-radius:12px; padding:10px; text-align:center; color:#94a3b8; }
+  .drop.drag{ border-color:var(--accent); color:var(--accent) }
+
+  /* Small screens */
+  @media (max-width: 1080px){ .left,.right{ display:none } .main{ padding:10px } }
+</style>
+</head>
+<body>
+
+<!-- Left: conversations -->
+<aside class="left">
+  <h3><i class="fa-solid fa-comments"></i> Sessions</h3>
+  <div id="chatList" class="chatlist"></div>
+  <div class="row">
+    <button id="newChat" class="btn primary" title="New chat"><i class="fa fa-plus"></i> New</button>
+    <button id="exportChat" class="btn ghost" title="Export JSON"><i class="fa fa-download"></i></button>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <section class="card">
+    <header class="header">
+      <div class="brand"><i class="fa-solid fa-robot"></i> Data Transfer Chatbot</div>
+      <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
+    </header>
+
+    <div id="chat" class="chat"></div>
+
+    <div class="inputbar">
+      <button id="uploadBtn" class="iconbtn" title="Attach file"><i class="fa fa-paperclip"></i></button>
+      <input type="file" id="fileInput" style="display:none" />
+      <textarea id="textbox" class="textbox" rows="1" placeholder="Type a message… (Enter to send, Shift+Enter for new line)"></textarea>
+      <button id="send" class="send"><i class="fa fa-paper-plane"></i></button>
+    </div>
+  </section>
+</main>
+
+<!-- Right: settings & actions -->
+<aside class="right">
+  <div class="panel">
+    <div class="row">
+      <label>Theme</label>
+      <select id="themeSel" class="select">
+        <option value="auto">Auto</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Accent</label>
+      <input type="color" id="accentPick" value="#7c3aed" />
+    </div>
+    <div class="row">
+      <label>Font</label>
+      <input type="number" id="fontSize" class="number" min="12" max="22" value="16" />
+    </div>
+    <div class="row">
+      <label>Rename</label>
+      <input id="rename" class="number" placeholder="Current chat title" />
+    </div>
+    <div class="drop" id="dropZone">Drag & drop files here</div>
+    <div class="hint">Session and settings are saved locally.</div>
+  </div>
+</aside>
+<script>
+  // ====== Config ======
+  const BASE_URL = "http://127.0.0.1:5000";   // change if your backend lives elsewhere
+  const CHAT_ENDPOINT = `${BASE_URL}/chat`;
+  const SESSION_ENDPOINT = `${BASE_URL}/session`;
+  const UPLOAD_ENDPOINT = `${BASE_URL}/upload`; // optional; frontend degrades gracefully
+  const STORAGE_KEY = "dataTransferChats";
+  const PREFS_KEY = "dtc_prefs_v2";
+
+  // ====== State ======
+  // each chat: {id, sid, title, messages:[{sender,text,ts,_el}]}
+  let chats = [];
+  let current = -1;
+  let typingRow = null;
+
+  // ====== Elements ======
+  const chatEl = document.getElementById("chat");
+  const listEl = document.getElementById("chatList");
+  const textbox = document.getElementById("textbox");
+  const sendBtn = document.getElementById("send");
+  const newBtn = document.getElementById("newChat");
+  const exportBtn = document.getElementById("exportChat");
+  const statusDot = document.getElementById("statusDot");
+  const statusText = document.getElementById("statusText");
+  const themeSel = document.getElementById("themeSel");
+  const accentPick = document.getElementById("accentPick");
+  const fontSize = document.getElementById("fontSize");
+  const rename = document.getElementById("rename");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const fileInput = document.getElementById("fileInput");
+  const dropZone = document.getElementById("dropZone");
+
+  // ====== Prefs (theme/accent/font) ======
+  const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
+  themeSel.value = prefs.theme || "auto";
+  accentPick.value = prefs.accent || getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#7c3aed";
+  fontSize.value = prefs.font || 16;
+  applyTheme(themeSel.value);
+  setAccent(accentPick.value);
+  setFont(+fontSize.value);
+
+  themeSel.addEventListener("change", e => { applyTheme(e.target.value); savePrefs(); });
+  accentPick.addEventListener("input", e => { setAccent(e.target.value); savePrefs(); });
+  fontSize.addEventListener("input", e => { setFont(+e.target.value); savePrefs(); });
+
+  function applyTheme(mode){
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = mode === "dark" || (mode === "auto" && prefersDark);
+    document.documentElement.classList.toggle("dark", isDark);
+  }
+  function setAccent(hex){
+    document.documentElement.style.setProperty("--accent", hex);
+    document.documentElement.style.setProperty("--user-bubble", hex);
+  }
+  function setFont(px){
+    document.documentElement.style.setProperty("--font", px + "px");
+  }
+  function savePrefs(){
+    localStorage.setItem(PREFS_KEY, JSON.stringify({
+      theme: themeSel.value, accent: accentPick.value, font: +fontSize.value
+    }));
+  }
+
+  // ====== Persistence ======
+  function loadChats(){
+    try { chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch { chats = []; }
+
+    // migration: keep existing chats; don't auto-assign sids (server will create)
+    if(!chats.length) newChat();
+    else {
+      current = 0;
+      renderList(); renderChat();
+      // if first chat is empty, create a session and show startup banner
+      if (chats[current].messages.length === 0) {
+        ensureSidAndBanner();
+      }
+    }
+  }
+  function saveChats(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+  }
+
+  // ====== Session helper ======
+  // Creates a backend session for the current chat (if missing) and renders startup text.
+  async function ensureSidAndBanner(){
+    const c = chats[current];
+    if (!c) return;
+    if (c.sid) return c.sid;
+
+    try{
+      const r = await fetch(SESSION_ENDPOINT, { method:"POST" });
+      const data = await r.json().catch(()=> ({}));
+      c.sid = data.session_id || crypto.randomUUID();
+      saveChats();
+
+      // Backend returns startup prints/prompts in "reply" (per backend patch)
+      if (data.reply && data.reply.trim()) {
+        addMessage("bot", data.reply.trim());
+        saveChats();
+      }
+      return c.sid;
+    }catch(e){
+      // fallback sid so user can still interact
+      c.sid = crypto.randomUUID();
+      saveChats();
+      return c.sid;
+    }
+  }
+
+  // ====== UI helpers ======
+  function newChat(){
+    chats.push({ id: crypto.randomUUID(), sid: null, title: "New chat", messages: [] });
+    current = chats.length - 1;
+    renderList(); renderChat(); saveChats();
+    // create session & show banner without consuming input
+    ensureSidAndBanner();
+  }
+  function renderList(){
+    listEl.innerHTML = "";
+    chats.forEach((c,i)=>{
+      const row = document.createElement("div");
+      row.className = "chat-item" + (i===current?" active":"");
+      const title = document.createElement("span");
+      title.className="title";
+      title.textContent = c.title || `Chat ${i+1}`;
+      const del = document.createElement("button");
+      del.className="tool"; del.title="Delete"; del.innerHTML='<i class="fa fa-trash"></i>';
+      del.onclick = (ev)=>{ ev.stopPropagation(); if(confirm(`Delete "${c.title}"?`)){ chats.splice(i,1); current=Math.max(0,current-1); renderList(); renderChat(); saveChats(); } };
+      row.onclick = ()=>{ current=i; renderList(); renderChat(); if(chats[current].messages.length===0) ensureSidAndBanner(); };
+      row.appendChild(title); row.appendChild(del); listEl.appendChild(row);
+    });
+    rename.value = chats[current]?.title || "";
+  }
+  function msgRow(sender, html){
+    const row = document.createElement("div");
+    row.className = "msg " + sender;
+    row.innerHTML = `<div class="bubble">${html}</div>
+                     <div class="tools">
+                       <button class="tool" title="Copy"><i class="fa fa-copy"></i></button>
+                       <button class="tool" title="Delete"><i class="fa fa-xmark"></i></button>
+                     </div>`;
+    const [copyBtn, delBtn] = row.querySelectorAll(".tool");
+    copyBtn.onclick = ()=> navigator.clipboard.writeText(row.innerText.trim());
+    delBtn.onclick = ()=> { row.remove(); const idx = chats[current].messages.findIndex(m => m._el === row); if(idx>-1){ chats[current].messages.splice(idx,1); saveChats(); } };
+    return row;
+  }
+  function addMessage(sender, text){
+    const html = escapeHtml(text).replace(/\n/g,"<br>");
+    const row = msgRow(sender, html);
+    chats[current].messages.push({ sender, text, ts: Date.now(), _el: row });
+    chatEl.appendChild(row);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+  function renderChat(){
+    chatEl.innerHTML = "";
+    const c = chats[current]; if(!c) return;
+    c.messages.forEach(m => { m._el = msgRow(m.sender, escapeHtml(m.text).replace(/\n/g,"<br>")); chatEl.appendChild(m._el); });
+    chatEl.scrollTop = chatEl.scrollHeight;
+    if (c.messages.length === 0) {
+      ensureSidAndBanner();  // create session + show startup banner
+    }
+  }
+  function showTyping(show){
+    if(show){
+      if(typingRow) return;
+      typingRow = document.createElement("div");
+      typingRow.className="typing";
+      typingRow.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+      chatEl.appendChild(typingRow);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }else{
+      if(typingRow){ typingRow.remove(); typingRow=null; }
+    }
+  }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+  // ====== Network ======
+  async function pingBackend(){
+    try{
+      const r = await fetch(BASE_URL,{method:"HEAD"});
+      statusDot.style.background = r.ok ? "#22c55e" : "#f59e0b";
+      statusText.textContent = r.ok ? "Connected" : "Unreachable";
+    }catch{
+      statusDot.style.background = "#ef4444";
+      statusText.textContent = "Offline";
+    }
+  }
+  pingBackend();
+
+  async function send(){
+    const text = textbox.value.trim();
+    if(!text) return;
+
+    if(chats[current].messages.length === 0){
+      chats[current].title = text.slice(0,32) + (text.length>32 ? "…" : "");
+      renderList();
+    }
+    addMessage("user", text);
+    textbox.value=""; autosize();
+    showTyping(true);
+
+    try{
+      // ensure we have a backend session for this chat
+      const c = chats[current];
+      const sid = c.sid || await ensureSidAndBanner();
+
+      const r = await fetch(CHAT_ENDPOINT,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ message:text, sessionId: sid })
+      });
+      const data = await r.json().catch(()=>({ reply:"(Invalid JSON from server)" }));
+      showTyping(false);
+      addMessage("bot", data.reply || "No reply");
+      saveChats();
+    }catch(e){
+      showTyping(false);
+      addMessage("bot"," Connection to backend failed");
+    }
+  }
+
+  // ====== Input behavior ======
+  function autosize(){
+    textbox.style.height="auto";
+    textbox.style.height = Math.min(180, textbox.scrollHeight) + "px";
+  }
+  textbox.addEventListener("input", autosize);
+  textbox.addEventListener("keydown", e=>{
+    if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+  sendBtn.onclick = send;
+
+  // ====== Rename / Export ======
+  rename.addEventListener("change", ()=>{
+    if(current<0) return;
+    chats[current].title = rename.value.trim() || chats[current].title;
+    renderList(); saveChats();
+  });
+  newBtn.onclick = newChat;
+  exportBtn.onclick = ()=>{
+    if(current<0) return;
+    const blob = new Blob([JSON.stringify(chats[current],null,2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = (chats[current].title||"chat") + ".json"; a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // ====== Uploads (optional backend) ======
+  uploadBtn.onclick = ()=> fileInput.click();
+  fileInput.onchange = async (e)=> handleFiles(e.target.files);
+  dropZone.addEventListener("dragover", e=>{ e.preventDefault(); dropZone.classList.add("drag"); });
+  dropZone.addEventListener("dragleave", ()=> dropZone.classList.remove("drag"));
+  dropZone.addEventListener("drop", e=>{
+    e.preventDefault(); dropZone.classList.remove("drag");
+    handleFiles(e.dataTransfer.files);
+  });
+
+  async function handleFiles(files){
+    if(!files || !files.length) return;
+    addMessage("user", `Uploaded ${files[0].name} (${Math.round(files[0].size/1024)} KB)`);
+    try{
+      const c = chats[current];
+      const sid = c.sid || await ensureSidAndBanner();
+      const fd = new FormData();
+      fd.append("file", files[0]);
+      fd.append("session_id", sid);
+      const r = await fetch(UPLOAD_ENDPOINT, { method:"POST", body:fd });
+      const data = await r.json().catch(()=>({ reply:"(Upload ok)" }));
+      addMessage("bot", data.reply || "Upload received.");
+    }catch{
+      addMessage("bot"," Upload endpoint not available.");
+    }
+  }
+
+  // ====== Boot ======
+  function boot(){
+    loadChats();
+    autosize();
+  }
+  boot();
+</script>
+</body>
+</html>
